@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Photo Lookup by Phone</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: white;
+      text-align: center;
+      padding: 30px;
+    }
+    h2 {
+      font-size: 36px;
+      margin-bottom: 30px;
+    }
+    input {
+      font-size: 24px;
+      padding: 10px;
+      width: 60%;
+      max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 12px 25px;
+      font-size: 24px;
+      background: #eee;
+      border: 1px solid #888;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ddd;
+    }
+    #photoResult {
+      margin-top: 30px;
+    }
+    #photoResult img {
+      max-width: 90%;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Photo Lookup by Phone Number</h2>
+  <input type="text" id="phoneInput" placeholder="Enter Phone Number">
+  <br>
+  <button onclick="searchPhoto()">Find Photo</button>
+
+  <div id="photoResult"></div>
+
+  <script>
+    let photoData = {};
+
+    async function loadPhotoSheet() {
+      const SHEET_ID = '13FXnczOazZPunaCZSqDYqsymV1H3ANjJOxcIzo6Davc';
+      const SHEET_NAME = 'Sheet1';
+      const URL = `https://opensheet.elk.sh/${SHEET_ID}/${SHEET_NAME}`;
+
+      try {
+        const res = await fetch(URL);
+        const data = await res.json();
+        photoData = {};
+
+        data.forEach(row => {
+          const phone = row['Phone']?.trim();
+          const link = row['Photo Link']?.trim();
+          if (phone && link) {
+            photoData[phone] = link;
+          }
+        });
+      } catch (e) {
+        console.error('Failed to load photo data:', e);
+        document.getElementById('photoResult').innerHTML = `<p style="color:red;">Failed to load data. Try again later.</p>`;
+      }
+    }
+
+    function searchPhoto() {
+      const phone = document.getElementById('phoneInput').value.trim();
+      const resultDiv = document.getElementById('photoResult');
+      resultDiv.innerHTML = '';
+
+      if (!phone) {
+        resultDiv.innerHTML = `<p>Please enter a phone number.</p>`;
+        return;
+      }
+
+      const photoURL = photoData[phone];
+      if (photoURL) {
+        resultDiv.innerHTML = `<p>Result for <strong>${phone}</strong>:</p><img src="${photoURL}" alt="Photo for ${phone}">`;
+      } else {
+        resultDiv.innerHTML = `<p>No photo found for <strong>${phone}</strong>.</p>`;
+      }
+    }
+
+    // Load data when page loads
+    window.onload = loadPhotoSheet;
+  </script>
+</body>
+</html>
